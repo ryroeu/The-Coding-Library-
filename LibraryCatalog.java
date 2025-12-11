@@ -89,4 +89,9 @@ public class LibraryCatalog {
         }
         return null;
     }
+
+    // Get all books in the catalog
+    public ArrayList<Book> getAllBooks() {
+        return new ArrayList<>(books);
+    }
 }

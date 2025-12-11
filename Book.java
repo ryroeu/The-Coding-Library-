@@ -11,27 +11,27 @@ public class Book {
 
     // Constructors for the "Book" Object
     public Book(String title, String author, String isbn) {
-	this.title = title;
-	this.author = author;
-	this.isbn = isbn;
-	this.isOut = false;
+        this.title = title;
+        this.author = author;
+        this.isbn = isbn;
+        this.isOut = false;
     }
 
-// Getter/Setter methods to access the attributes
+    // Getter/Setter methods to access the attributes
     public String getTitle() {
-	return title;
+        return title;
     }
 
     public String getAuthor() {
-	return author;
+        return author;
     }
 
     public String getIsbn() {
-	return isbn;
+        return isbn;
     }
 
     public boolean isOut() {
-	return isOut;
+        return isOut;
     }
 
     // Additional getter/setter for compatibility with LibraryCatalog
@@ -43,28 +43,28 @@ public class Book {
 	this.isOut = checkedOut;
     }
 
-//Method handling checking out books
+    // Method handling checking out books
     public void checkoutBook() {
-	if (!isOut) {
-	    isOut = true;
-	    System.out.println("You have taken out: " + title);
-	} else {
-	    System.out.println("This book is already checked out.");
-	}
+        if (!isOut) {
+            isOut = true;
+            System.out.println("You have taken out: " + title);
+        } else {
+            System.out.println("This book is already checked out.");
+        }
     }
 
-    //Method handling checking in books
+    // Method handling checking in books
     public void checkinBook() {
-	if (isOut) {
-	    isOut = false;
-	    System.out.println("You have returned " + title + " Thank you!");
-	} else {
-	    System.out.println("This book is already available in the library.");
-	}
+        if (isOut) {
+            isOut = false;
+            System.out.println("You have returned " + title + " Thank you!");
+        } else {
+            System.out.println("This book is already available in the library.");
+        }
     }
 
     @Override
     public String toString() {
-	return "Book [Title: " + title + "\n Author: " + author + "\n ISBN: " + isbn + "\n Available: " + !isOut + "]";
+        return "Book [Title: " + title + "\n Author: " + author + "\n ISBN: " + isbn + "\n Available: " + !isOut + "]";
     }
 }

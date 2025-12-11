@@ -10,7 +10,7 @@ rm -f *.class
 
 # Step 2: Compile all Java source files
 echo "Step 2: Compiling Java source files..."
-javac Book.java LibraryCatalog.java LibraryManager.java LibraryGUI.java
+javac --enable-preview --release 25 Book.java LibraryCatalog.java LibraryManager.java LibraryGUI.java
 
 # Check if compilation was successful
 if [ $? -ne 0 ]; then

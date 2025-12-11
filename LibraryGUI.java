@@ -7,6 +7,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
 
 public class LibraryGUI extends JFrame {
     private LibraryCatalog catalog;
@@ -35,6 +36,13 @@ public class LibraryGUI extends JFrame {
         add(createTitlePanel(), BorderLayout.NORTH);
         add(createCenterPanel(), BorderLayout.CENTER);
         add(createBottomPanel(), BorderLayout.SOUTH);
+        
+        // Force an initial table update after all components are created
+        SwingUtilities.invokeLater(() -> {
+            updateBookTable();
+            revalidate();
+            repaint();
+        });
         
         // Display the window
         setVisible(true);
@@ -76,11 +84,19 @@ public class LibraryGUI extends JFrame {
         JScrollPane tableScrollPane = new JScrollPane(bookTable);
         tableScrollPane.setBorder(BorderFactory.createTitledBorder("Book Collection"));
         
-        // Create input panel
-        JPanel inputPanel = createInputPanel();
+        // Create input form panel (without buttons)
+        JPanel inputFormPanel = createInputFormPanel();
+        
+        // Create button panel separately
+        JPanel buttonPanel = createButtonPanel();
+        
+        // Create a container for form and buttons
+        JPanel inputContainer = new JPanel(new BorderLayout(0, 10));
+        inputContainer.add(inputFormPanel, BorderLayout.CENTER);
+        inputContainer.add(buttonPanel, BorderLayout.SOUTH);
         
         // Split the center into table and input
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tableScrollPane, inputPanel);
+        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tableScrollPane, inputContainer);
         splitPane.setDividerLocation(300);
         splitPane.setResizeWeight(0.6);
         
@@ -92,31 +108,74 @@ public class LibraryGUI extends JFrame {
         return centerPanel;
     }
     
-    private JPanel createInputPanel() {
-        JPanel mainPanel = new JPanel(new BorderLayout(5, 5));
-        mainPanel.setBorder(BorderFactory.createTitledBorder("Book Management"));
+    private JPanel createInputFormPanel() {
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createTitledBorder("Book Management"),
+            BorderFactory.createEmptyBorder(10, 20, 10, 20)
+        ));
         
-        // Create form panel
-        JPanel formPanel = new JPanel(new GridLayout(3, 2, 10, 10));
-        formPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        // Create form panel with GridBagLayout for better control
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(8, 5, 8, 5);
         
-        // ISBN
-        formPanel.add(new JLabel("ISBN:"));
-        isbnField = new JTextField();
-        formPanel.add(isbnField);
+        // ISBN Row
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 0.2;
+        JLabel isbnLabel = new JLabel("ISBN:");
+        isbnLabel.setFont(new Font("Arial", Font.BOLD, 13));
+        formPanel.add(isbnLabel, gbc);
         
-        // Title
-        formPanel.add(new JLabel("Title:"));
-        titleField = new JTextField();
-        formPanel.add(titleField);
+        gbc.gridx = 1;
+        gbc.weightx = 0.8;
+        isbnField = new JTextField(20);
+        isbnField.setFont(new Font("Arial", Font.PLAIN, 13));
+        isbnField.setPreferredSize(new Dimension(250, 28));
+        formPanel.add(isbnField, gbc);
         
-        // Author
-        formPanel.add(new JLabel("Author:"));
-        authorField = new JTextField();
-        formPanel.add(authorField);
+        // Title Row
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 0.2;
+        JLabel titleLabel = new JLabel("Title:");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 13));
+        formPanel.add(titleLabel, gbc);
         
-        // Create button panel
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        gbc.gridx = 1;
+        gbc.weightx = 0.8;
+        titleField = new JTextField(20);
+        titleField.setFont(new Font("Arial", Font.PLAIN, 13));
+        titleField.setPreferredSize(new Dimension(250, 28));
+        formPanel.add(titleField, gbc);
+        
+        // Author Row
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.weightx = 0.2;
+        JLabel authorLabel = new JLabel("Author:");
+        authorLabel.setFont(new Font("Arial", Font.BOLD, 13));
+        formPanel.add(authorLabel, gbc);
+        
+        gbc.gridx = 1;
+        gbc.weightx = 0.8;
+        authorField = new JTextField(20);
+        authorField.setFont(new Font("Arial", Font.PLAIN, 13));
+        authorField.setPreferredSize(new Dimension(250, 28));
+        formPanel.add(authorField, gbc);
+        
+        mainPanel.add(formPanel, BorderLayout.CENTER);
+        mainPanel.setPreferredSize(new Dimension(600, 140));
+        mainPanel.setMinimumSize(new Dimension(400, 140));
+        
+        return mainPanel;
+    }
+    
+    private JPanel createButtonPanel() {
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
         
         JButton addButton = createStyledButton("Add Book", new Color(46, 125, 50));
         JButton checkOutButton = createStyledButton("Check Out", new Color(25, 118, 210));
@@ -134,10 +193,7 @@ public class LibraryGUI extends JFrame {
         buttonPanel.add(checkInButton);
         buttonPanel.add(refreshButton);
         
-        mainPanel.add(formPanel, BorderLayout.NORTH);
-        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
-        
-        return mainPanel;
+        return buttonPanel;
     }
     
     private JPanel createBottomPanel() {
@@ -198,16 +254,17 @@ public class LibraryGUI extends JFrame {
         // Clear the table
         tableModel.setRowCount(0);
         
-        // This is a workaround since LibraryCatalog doesn't expose its books list
-        // We'll need to add each book through the table
-        // For now, we'll use reflection or modify LibraryCatalog to expose books
-        // As a temporary solution, we'll track books separately
+        // Get all books from the catalog
+        ArrayList<Book> books = catalog.getAllBooks();
         
-        // Since we can't access the books directly from LibraryCatalog,
-        // we'll need to maintain our own list
-        // Let's create a method to get all books
+        // Add each book to the table
+        for (Book book : books) {
+            String status = book.isCheckedOut() ? "Checked Out" : "Available";
+            Object[] rowData = {book.getTitle(), book.getAuthor(), book.getIsbn(), status};
+            tableModel.addRow(rowData);
+        }
         
-        logMessage("Book table refreshed.");
+        logMessage("Book table refreshed. Total books: " + books.size());
     }
     
     private void addBook() {
@@ -226,9 +283,8 @@ public class LibraryGUI extends JFrame {
         Book newBook = new Book(title, author, isbn);
         catalog.addBook(newBook);
         
-        // Add to table
-        Object[] rowData = {title, author, isbn, "Available"};
-        tableModel.addRow(rowData);
+        // Refresh the entire table
+        updateBookTable();
         
         // Clear fields
         isbnField.setText("");
@@ -261,7 +317,7 @@ public class LibraryGUI extends JFrame {
         }
         
         catalog.checkOutBook(title);
-        tableModel.setValueAt("Checked Out", selectedRow, 3);
+        updateBookTable();
         
         logMessage("✓ Checked out: " + title);
     }
@@ -289,7 +345,7 @@ public class LibraryGUI extends JFrame {
         }
         
         catalog.returnBook(title);
-        tableModel.setValueAt("Available", selectedRow, 3);
+        updateBookTable();
         
         logMessage("✓ Checked in: " + title);
     }
@@ -316,12 +372,7 @@ public class LibraryGUI extends JFrame {
                 e.printStackTrace();
             }
             
-            LibraryGUI gui = new LibraryGUI();
-            // Explicitly bring window to front on macOS
-            gui.setAlwaysOnTop(true);
-            gui.setAlwaysOnTop(false);
-            gui.toFront();
-            gui.requestFocus();
+            new LibraryGUI();
         });
     }
 }
